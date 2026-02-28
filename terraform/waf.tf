@@ -1,0 +1,1 @@
+# WAF removido do projeto.
