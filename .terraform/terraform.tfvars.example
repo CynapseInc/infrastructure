@@ -1,9 +1,0 @@
-project_name = "arquitetura-tech"
-aws_region   = "us-east-1"
-
-# Opcional: use null para não configurar chave SSH
-# key_name = "vockey"
-
-db_name     = "appdb"
-db_username = "admin"
-db_password = "TroqueParaUmaSenhaSegura123!"
