@@ -27,7 +27,7 @@ resource "aws_security_group" "alb" {
 
 resource "aws_security_group" "frontend" {
   name        = "${var.project_name}-sg-frontend"
-  description = "Permite tráfego HTTP do ALB e SSH"
+  description = "Permite trafego HTTP do ALB e SSH"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -62,11 +62,11 @@ resource "aws_security_group" "frontend" {
 
 resource "aws_security_group" "database" {
   name        = "${var.project_name}-sg-database"
-  description = "Permite MySQL das instâncias de aplicação"
+  description = "Permite MySQL das instancias de aplicacao"
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description     = "MySQL vindo da camada de aplicação"
+    description     = "MySQL vindo da camada de aplicacao"
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"

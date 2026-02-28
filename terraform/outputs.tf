@@ -4,12 +4,12 @@ output "vpc_id" {
 }
 
 output "alb_dns_name" {
-  description = "DNS público do Application Load Balancer"
+  description = "DNS publico do Application Load Balancer"
   value       = aws_lb.frontend.dns_name
 }
 
 output "frontend_instance_ids" {
-  description = "IDs das instâncias de aplicação"
+  description = "IDs das instancias de aplicacao"
   value       = aws_instance.frontend[*].id
 }
 

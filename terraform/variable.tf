@@ -1,5 +1,5 @@
 variable "aws_region" {
-  description = "Região AWS"
+  description = "Regiao AWS"
   type        = string
   default     = "us-east-1"
 }
@@ -17,7 +17,7 @@ variable "vpc_cidr" {
 }
 
 variable "public_subnet_cidrs" {
-  description = "Sub-redes públicas para ALB/EC2"
+  description = "Sub-redes publicas para ALB/EC2"
   type        = list(string)
   default     = ["10.0.0.0/27", "10.0.0.64/27"]
 }
@@ -53,7 +53,7 @@ variable "ips_qualquer_lugar_v6" {
 }
 
 variable "instance_type_frontend" {
-  description = "Tipo da instância EC2 front-end"
+  description = "Tipo da instancia EC2 front-end"
   type        = string
   default     = "t3.micro"
 }
@@ -71,7 +71,7 @@ variable "db_name" {
 }
 
 variable "db_username" {
-  description = "Usuário do banco MySQL"
+  description = "Usuario do banco MySQL"
   type        = string
   default     = "admin"
 }
@@ -84,7 +84,13 @@ variable "db_password" {
 }
 
 variable "db_instance_class" {
-  description = "Classe da instância RDS"
+  description = "Classe da instancia RDS"
   type        = string
   default     = "db.t3.micro"
+}
+
+variable "alert_email" {
+  description = "E-mail para receber alertas de seguranca via SNS"
+  type        = string
+  default     = ""
 }

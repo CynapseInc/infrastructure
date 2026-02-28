@@ -1,0 +1,13 @@
+aws logs create-log-stream `
+  --region us-east-1 `
+  --log-group-name "/arquitetura-tech/application" `
+  --log-stream-name "teste-owasp-a09"
+
+----||----
+
+$ts = [int64](([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()))
+aws logs put-log-events `
+  --region us-east-1 `
+  --log-group-name "/arquitetura-tech/application" `
+  --log-stream-name "teste-owasp-a09" `
+  --log-events "[{`"timestamp`":$ts,`"message`":`"Unauthorized access attempt`"},{`"timestamp`":$($ts+1),`"message`":`"AccessDenied on /admin`"},{`"timestamp`":$($ts+2),`"message`":`"Invalid token from 10.0.0.10`"}]"

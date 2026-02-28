@@ -1,9 +1,11 @@
 project_name = "arquitetura-tech"
 aws_region   = "us-east-1"
 
-# Opcional: use null para não configurar chave SSH
+# Opcional: use null para nao configurar chave SSH
 # key_name = "vockey"
 
 db_name     = "appdb"
 db_username = "admin"
-db_password = "TroqueParaUmaSenhaSegura123!"
+db_password = "Senha123"
+
+alert_email = "email123"
