@@ -57,7 +57,7 @@ resource "aws_cloudwatch_metric_alarm" "log_ingestion_stopped" {
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = 3
   threshold           = 0
-  period              = 500
+  period              = 600
   statistic           = "Sum"
   namespace           = "AWS/Logs"
   metric_name         = "IncomingLogEvents"
@@ -72,6 +72,7 @@ resource "aws_cloudwatch_metric_alarm" "log_ingestion_stopped" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "app_cpu_high" {
+  count               = length(aws_instance.frontend) > 0 ? 1 : 0
   alarm_name          = "${var.project_name}-app-cpu-high"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2

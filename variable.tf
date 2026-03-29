@@ -20,12 +20,22 @@ variable "public_subnet_cidrs" {
   description = "Sub-redes publicas para ALB/EC2"
   type        = list(string)
   default     = ["10.0.0.0/27", "10.0.0.64/27"]
+
+  validation {
+    condition     = length(var.public_subnet_cidrs) >= 2
+    error_message = "Defina ao menos 2 sub-redes publicas para atender o ALB em multiplas AZs."
+  }
 }
 
 variable "private_db_subnet_cidrs" {
   description = "Sub-redes privadas de banco"
   type        = list(string)
   default     = ["10.0.0.32/27", "10.0.0.96/27"]
+
+  validation {
+    condition     = length(var.private_db_subnet_cidrs) >= 2
+    error_message = "Defina ao menos 2 sub-redes privadas para o DB subnet group do RDS."
+  }
 }
 
 variable "porta_ssh" {
