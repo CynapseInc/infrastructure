@@ -1,0 +1,85 @@
+#!/bin/bash
+set -euo pipefail
+
+# Redireciona a saída para log para facilitar o debug via SSH
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+echo "=== Iniciando Setup do Backend ==="
+
+# 1. Instalação de dependências
+dnf update -y
+dnf install -y docker awscli python3 python3-pip
+systemctl enable --now docker
+
+python3 -m pip install --no-cache-dir Faker
+
+# 2. Instalação do Docker Compose
+DOCKER_CONFIG=$${DOCKER_CONFIG:-/usr/local/lib/docker/cli-plugins}
+mkdir -p "$DOCKER_CONFIG"
+curl -SL https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+# 3. Preparação do diretório de trabalho
+mkdir -p /opt/encanto
+cd /opt/encanto
+
+echo "Baixando gerador de inserts..."
+aws s3 cp "s3://${deploy_bucket}/backend/gerarInserts2.py" /opt/encanto/gerarInserts2.py
+
+echo "Gerando arquivo SQL de inserts..."
+python3 /opt/encanto/gerarInserts2.py
+
+echo "Criando estrutura para API WhatsApp..."
+mkdir -p "/opt/encanto/API WHATSAPP"
+
+# Baixa o .env real do seu bucket privado
+aws s3 cp "s3://${deploy_bucket}/backend/whatsapp.env" "/opt/encanto/API WHATSAPP/.env"
+
+# 4. Download de artefatos do S3
+echo "Baixando arquivos do S3..."
+aws s3 cp "s3://${deploy_bucket}/${jar_key}" /opt/encanto/app.jar
+aws s3 cp "s3://${deploy_bucket}/backend/docker-compose.yml" /opt/encanto/docker-compose.yml
+
+# 5. Criação do serviço Systemd
+cat <<'EOF' > /etc/systemd/system/encanto-docker.service
+[Unit]
+Description=Encanto Backend Containers
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/encanto
+Environment="BACKEND_PORT=${backend_port}"
+ExecStart=/usr/local/bin/docker-compose up -d
+ExecStop=/usr/local/bin/docker-compose down
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 6. Ativação e inicialização do serviço
+systemctl daemon-reload
+systemctl enable encanto-docker
+systemctl start encanto-docker
+
+echo "Aguardando o MySQL do compose ficar pronto..."
+MYSQL_CONTAINER=""
+for attempt in $(seq 1 30); do
+	MYSQL_CONTAINER=$(docker ps --format '{{.Names}}' | grep -m1 -E '(^|[-_])mysql([_-]|$)' || true)
+	if [ -n "$MYSQL_CONTAINER" ] && docker exec "$MYSQL_CONTAINER" mysqladmin ping -uroot -pencanto --silent; then
+		break
+	fi
+	sleep 5
+done
+
+if [ -z "$MYSQL_CONTAINER" ]; then
+	echo "Container MySQL não foi encontrado."
+	exit 1
+fi
+
+echo "Importando inserts gerados pelo Python..."
+docker exec -i "$MYSQL_CONTAINER" mysql -uroot -pencanto encanto_personalizados < /opt/encanto/popular_banco.sql
+
+echo "=== Backend Docker service configurado com sucesso ==="
