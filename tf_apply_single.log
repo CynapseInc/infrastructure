@@ -1,0 +1,306 @@
+data.aws_availability_zones.available: Reading...
+data.aws_caller_identity.current: Reading...
+data.aws_ami.amazon_linux: Reading...
+aws_cloudwatch_log_group.application: Refreshing state... [id=/arquitetura-tech/application]
+aws_eip.nat: Refreshing state... [id=eipalloc-0e9b6b7773125bb05]
+aws_sns_topic.security_alerts: Refreshing state... [id=arn:aws:sns:us-east-1:874458981342:arquitetura-tech-security-alerts]
+aws_vpc.main: Refreshing state... [id=vpc-00a0006dac5d44d4f]
+aws_security_group.alb: Refreshing state... [id=sg-080237b3d6f6a210f]
+data.aws_caller_identity.current: Read complete after 0s [id=874458981342]
+aws_s3_bucket.raw: Refreshing state... [id=arquitetura-tech-s3-raw-874458981342]
+aws_s3_bucket.refined: Refreshing state... [id=arquitetura-tech-s3-refined-874458981342]
+aws_s3_bucket.deploy: Refreshing state... [id=arquitetura-tech-s3-deploy-874458981342]
+data.aws_availability_zones.available: Read complete after 0s [id=us-east-1]
+aws_s3_bucket.trusted: Refreshing state... [id=arquitetura-tech-s3-trusted-874458981342]
+aws_cloudwatch_metric_alarm.security_events_high: Refreshing state... [id=arquitetura-tech-security-events-high]
+aws_sns_topic_subscription.security_alerts_email[0]: Refreshing state... [id=arn:aws:sns:us-east-1:874458981342:arquitetura-tech-security-alerts:2b8d8d8e-4123-49ad-8320-836f437839b0]
+aws_cloudwatch_log_metric_filter.security_events: Refreshing state... [id=arquitetura-tech-security-events-filter]
+aws_cloudwatch_metric_alarm.log_ingestion_stopped: Refreshing state... [id=arquitetura-tech-log-ingestion-stopped]
+data.aws_ami.amazon_linux: Read complete after 1s [id=ami-0244b3aa0b9e167c7]
+aws_internet_gateway.igw: Refreshing state... [id=igw-06c4329b1a4ffb50f]
+aws_subnet.public[0]: Refreshing state... [id=subnet-0d03f9dd48a587a8c]
+aws_subnet.private_db[0]: Refreshing state... [id=subnet-01eccd217fb127be6]
+aws_subnet.private_db[1]: Refreshing state... [id=subnet-06acd8fcbb96955ba]
+aws_security_group.frontend: Refreshing state... [id=sg-055dd0625d707f978]
+aws_route_table.public: Refreshing state... [id=rtb-0336790bf97be3b4e]
+aws_nat_gateway.nat: Refreshing state... [id=nat-0c20ff81510496593]
+aws_db_subnet_group.main: Refreshing state... [id=arquitetura-tech-db-subnet-group]
+aws_network_acl.main: Refreshing state... [id=acl-06c53fe64da5c2883]
+aws_security_group.backend: Refreshing state... [id=sg-0854d5952dbb8ec25]
+aws_route_table.private_db: Refreshing state... [id=rtb-00f88785b250374ce]
+aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-0ea58d8020f3fed9a]
+aws_security_group.database: Refreshing state... [id=sg-009eae6f4d9fce4fd]
+aws_route_table_association.private_db[0]: Refreshing state... [id=rtbassoc-0fe148c12f1adabf9]
+aws_route_table_association.private_db[1]: Refreshing state... [id=rtbassoc-0fc268c8cbcb71c5c]
+aws_s3_bucket_versioning.deploy: Refreshing state... [id=arquitetura-tech-s3-deploy-874458981342]
+aws_s3_object.backend_jar: Refreshing state... [id=backend/app.jar]
+aws_s3_object.frontend_dist["vite.svg"]: Refreshing state... [id=frontend/vite.svg]
+aws_s3_object.frontend_dist["assets/index-0gSxP4n9.js"]: Refreshing state... [id=frontend/assets/index-0gSxP4n9.js]
+aws_s3_object.frontend_dist["assets/index-DpBVNxnh.css"]: Refreshing state... [id=frontend/assets/index-DpBVNxnh.css]
+aws_s3_object.frontend_dist["assets/logoEncanto-CX74hiaE.png"]: Refreshing state... [id=frontend/assets/logoEncanto-CX74hiaE.png]
+aws_s3_object.frontend_dist["index.html"]: Refreshing state... [id=frontend/index.html]
+aws_s3_bucket_versioning.refined: Refreshing state... [id=arquitetura-tech-s3-refined-874458981342]
+aws_s3_bucket_versioning.raw: Refreshing state... [id=arquitetura-tech-s3-raw-874458981342]
+aws_db_instance.mysql: Refreshing state... [id=db-PJJL5TQT56ZFSQQ6BTL7CVLAGU]
+aws_s3_bucket_versioning.trusted: Refreshing state... [id=arquitetura-tech-s3-trusted-874458981342]
+aws_instance.frontend[0]: Refreshing state... [id=i-0217161d83a92243e]
+aws_instance.backend_private: Refreshing state... [id=i-0bbc86c17aac731ad]
+aws_cloudwatch_metric_alarm.app_cpu_high[0]: Refreshing state... [id=arquitetura-tech-app-cpu-high]
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  ~ update in-place
+  - destroy
+-/+ destroy and then create replacement
+
+Terraform will perform the following actions:
+
+  # aws_instance.frontend[0] will be updated in-place
+  ~ resource "aws_instance" "frontend" {
+        id                                   = "i-0217161d83a92243e"
+        tags                                 = {
+            "Name" = "frontend"
+            "Role" = "app"
+        }
+      ~ vpc_security_group_ids               = [
+          - "sg-055dd0625d707f978",
+        ] -> (known after apply)
+        # (39 unchanged attributes hidden)
+
+        # (8 unchanged blocks hidden)
+    }
+
+  # aws_s3_object.backend_jar will be updated in-place
+  ~ resource "aws_s3_object" "backend_jar" {
+      ~ etag                          = "deb87b2d84ca96e02ac0586585c6b0df-16" -> "54f5c4a802d2d0c76491e22f2c1ef785"
+        id                            = "backend/app.jar"
+        tags                          = {}
+      ~ version_id                    = "t4iFvuevxpb2xCbXids3g04_UZUmXnUw" -> (known after apply)
+        # (24 unchanged attributes hidden)
+    }
+
+  # aws_security_group.alb will be destroyed
+  # (because aws_security_group.alb is not in configuration)
+  - resource "aws_security_group" "alb" {
+      - arn                    = "arn:aws:ec2:us-east-1:874458981342:security-group/sg-080237b3d6f6a210f" -> null
+      - description            = "Permite HTTP da internet para o ALB" -> null
+      - egress                 = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - from_port        = 0
+              - ipv6_cidr_blocks = [
+                  - "::/0",
+                ]
+              - prefix_list_ids  = []
+              - protocol         = "-1"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 0
+                # (1 unchanged attribute hidden)
+            },
+        ] -> null
+      - id                     = "sg-080237b3d6f6a210f" -> null
+      - ingress                = [
+          - {
+              - cidr_blocks      = [
+                  - "0.0.0.0/0",
+                ]
+              - description      = "HTTP de qualquer lugar"
+              - from_port        = 80
+              - ipv6_cidr_blocks = [
+                  - "::/0",
+                ]
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = []
+              - self             = false
+              - to_port          = 80
+            },
+        ] -> null
+      - name                   = "arquitetura-tech-sg-alb" -> null
+      - owner_id               = "874458981342" -> null
+      - revoke_rules_on_delete = false -> null
+      - tags                   = {
+          - "Name" = "arquitetura-tech-sg-alb"
+        } -> null
+      - tags_all               = {
+          - "Name" = "arquitetura-tech-sg-alb"
+        } -> null
+      - vpc_id                 = "vpc-00a0006dac5d44d4f" -> null
+        # (1 unchanged attribute hidden)
+    }
+
+  # aws_security_group.backend will be updated in-place
+  ~ resource "aws_security_group" "backend" {
+        id                     = "sg-0854d5952dbb8ec25"
+      ~ ingress                = [
+          - {
+              - cidr_blocks      = []
+              - description      = "API vindo da camada frontend"
+              - from_port        = 8080
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = [
+                  - "sg-055dd0625d707f978",
+                ]
+              - self             = false
+              - to_port          = 8080
+            },
+          - {
+              - cidr_blocks      = []
+              - description      = "SSH vindo da camada frontend"
+              - from_port        = 22
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = [
+                  - "sg-055dd0625d707f978",
+                ]
+              - self             = false
+              - to_port          = 22
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = "API vindo da camada frontend"
+              + from_port        = 8080
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 8080
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = "SSH vindo da camada frontend"
+              + from_port        = 22
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 22
+            },
+        ]
+        name                   = "arquitetura-tech-sg-backend"
+        tags                   = {
+            "Name" = "arquitetura-tech-sg-backend"
+        }
+        # (8 unchanged attributes hidden)
+    }
+
+  # aws_security_group.frontend must be replaced
+-/+ resource "aws_security_group" "frontend" {
+      ~ arn                    = "arn:aws:ec2:us-east-1:874458981342:security-group/sg-055dd0625d707f978" -> (known after apply)
+      ~ description            = "Permite trafego HTTP do ALB e SSH" -> "Permite trafego HTTP publico e SSH" # forces replacement
+      ~ id                     = "sg-055dd0625d707f978" -> (known after apply)
+      ~ ingress                = [
+          - {
+              - cidr_blocks      = []
+              - description      = "HTTP vindo do ALB"
+              - from_port        = 80
+              - ipv6_cidr_blocks = []
+              - prefix_list_ids  = []
+              - protocol         = "tcp"
+              - security_groups  = [
+                  - "sg-080237b3d6f6a210f",
+                ]
+              - self             = false
+              - to_port          = 80
+            },
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = "HTTP de qualquer lugar"
+              + from_port        = 80
+              + ipv6_cidr_blocks = [
+                  + "::/0",
+                ]
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 80
+            },
+            # (1 unchanged element hidden)
+        ]
+        name                   = "arquitetura-tech-sg-frontend"
+      + name_prefix            = (known after apply)
+      ~ owner_id               = "874458981342" -> (known after apply)
+        tags                   = {
+            "Name" = "arquitetura-tech-sg-frontend"
+        }
+        # (4 unchanged attributes hidden)
+    }
+
+Plan: 1 to add, 3 to change, 2 to destroy.
+aws_security_group.frontend: Destroying... [id=sg-055dd0625d707f978]
+aws_s3_object.backend_jar: Modifying... [id=backend/app.jar]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 00m10s elapsed]
+aws_s3_object.backend_jar: Still modifying... [id=backend/app.jar, 00m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 00m20s elapsed]
+aws_s3_object.backend_jar: Still modifying... [id=backend/app.jar, 00m20s elapsed]
+aws_s3_object.backend_jar: Modifications complete after 21s [id=backend/app.jar]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 00m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 00m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 00m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 01m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 01m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 01m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 01m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 01m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 01m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 02m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 02m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 02m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 02m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 02m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 02m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 03m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 03m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 03m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 03m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 03m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 03m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 04m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 04m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 04m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 04m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 04m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 04m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 05m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 05m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 05m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 05m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 05m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 05m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 06m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 06m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 06m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 06m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 06m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 06m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 07m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 07m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 07m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 07m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 07m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 07m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 08m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 08m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 08m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 08m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 08m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 08m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 09m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 09m10s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 09m20s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 09m30s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 09m40s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 09m50s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 10m00s elapsed]
+aws_security_group.frontend: Still destroying... [id=sg-055dd0625d707f978, 10m10s elapsed]

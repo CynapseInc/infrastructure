@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "deploy_bucket"{
+  description = "Nome do bucket S3 para deploy de artefatos"
+  type        = string
+  default     = "bucket-s3-deploy"
+}
+
 variable "project_name" {
   description = "Prefixo para nomear recursos"
   type        = string
@@ -17,13 +23,13 @@ variable "vpc_cidr" {
 }
 
 variable "public_subnet_cidrs" {
-  description = "Sub-redes publicas para ALB/EC2"
+  description = "Sub-rede publica para EC2 frontend"
   type        = list(string)
-  default     = ["10.0.0.0/27", "10.0.0.64/27"]
+  default     = ["10.0.0.0/27"]
 
   validation {
-    condition     = length(var.public_subnet_cidrs) >= 2
-    error_message = "Defina ao menos 2 sub-redes publicas para atender o ALB em multiplas AZs."
+    condition     = length(var.public_subnet_cidrs) >= 1
+    error_message = "Defina ao menos 1 sub-rede publica para a EC2 frontend."
   }
 }
 
@@ -68,10 +74,27 @@ variable "instance_type_frontend" {
   default     = "t3.micro"
 }
 
+variable "frontend_dist_path" {
+  description = "Caminho local da pasta dist do frontend"
+  type        = string
+  default     = "../frontend/EncantoFrontend/dist"
+}
+
+variable "backend_jar_path" {
+  description = "Caminho local do JAR do backend"
+  type        = string
+  default     = "../backend/EncantoPersonalizados/target/EncantoPersonalizados-0.0.1-SNAPSHOT.jar"
+}
+
+variable "backend_port" {
+  description = "Porta da API Java na EC2 privada"
+  type        = number
+  default     = 8080
+}
 variable "key_name" {
   description = "Nome do par de chaves EC2 para SSH"
   type        = string
-  default     = null
+  default     = "vockey" # Valor padrão para AWS Academy
 }
 
 variable "db_name" {
