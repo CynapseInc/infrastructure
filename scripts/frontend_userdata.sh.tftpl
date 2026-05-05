@@ -1,78 +1,45 @@
 #!/bin/bash
-# Redireciona logs para podermos debugar depois se algo der errado
-exec > >(tee /var/log/user-data.log)
-exec 2>&1
+exec > >(tee /var/log/user-data.log) 2>&1
 
-echo "=== Starting React Frontend Deployment ==="
-echo "Timestamp: $(date)"
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+systemctl enable --now docker
 
-# Variáveis injetadas pelo Terraform
-BUCKET_NAME="${deploy_bucket}"
-S3_REGION="${aws_region}"
-WEB_ROOT="/var/www/html"
+mkdir -p /opt/encanto
+cd /opt/encanto
 
-echo "Bucket: $BUCKET_NAME"
-echo "Region: $S3_REGION"
-
-# 1. Instalar dependências
-echo "Instalando Nginx e AWS CLI..."
-dnf update -y
-dnf install -y nginx awscli
-
-# 2. Limpar e preparar diretório web
-mkdir -p "$WEB_ROOT"
-rm -rf "$WEB_ROOT/*"
-
-# 3. Sincronizar arquivos do S3 usando a Identity da Role (IAM)
-echo "Sincronizando arquivos do S3..."
-aws s3 sync "s3://$BUCKET_NAME/frontend/" "$WEB_ROOT/" --region "$S3_REGION"
-
-# 4. Fallback caso o sync falhe ou bucket esteja vazio
-if [ ! -f "$WEB_ROOT/index.html" ]; then
-    echo "index.html não encontrado. Criando página de espera..."
-    cat > "$WEB_ROOT/index.html" <<'HTML'
-<!doctype html>
-<html>
-<head><title>Encanto - Deploying</title></head>
-<body style="font-family:sans-serif; text-align:center; padding-top:50px;">
-    <h1>Encanto Frontend está sendo preparado...</h1>
-    <p>Verifique os logs em /var/log/user-data.log na instância.</p>
-</body>
-</html>
-HTML
-fi
-
-# 5. Permissões corretas para o Nginx
-chown -R nginx:nginx "$WEB_ROOT"
-chmod -R 755 "$WEB_ROOT"
-
-# 6. Configuração do Nginx para Single Page Application (SPA)
-echo "Configurando Nginx..."
-rm -f /etc/nginx/conf.d/default.conf
-
-cat > /etc/nginx/conf.d/react.conf <<'NGINX_CONF'
+cat <<EOF > default.conf
 server {
-    listen 80 default_server;
-    server_name _;
-    root /var/www/html;
-    index index.html;
-
-    # Suporte ao React Router (evita 404 ao dar refresh em rotas)
+    listen 80;
     location / {
-        try_files $uri $uri/ /index.html;
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+        try_files \$uri \$uri/ /index.html;
+    }    
+    location /api/ {
+        proxy_pass http://${backend_ip}:8080/;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
     }
-
-    # Cache de assets estáticos com hash (Vite)
-    location ~* \.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-        try_files $uri =404;
+    location /uploads/ {
+        proxy_pass http://${backend_ip}:8080/uploads/;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
     }
 }
-NGINX_CONF
+EOF
 
-# 7. Iniciar o serviço
-echo "Iniciando Nginx..."
-nginx -t && systemctl enable nginx && systemctl start nginx
+cat <<EOF > docker-compose.yml
+version: '3.8'
+services:
+  frontend:
+    image: israelcoaquira/encanto-frontend:latest
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      # Linkamos o arquivo da EC2 para dentro do container do Nginx!
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+EOF
 
-echo "=== Deployment Complete ==="
+docker compose up -d

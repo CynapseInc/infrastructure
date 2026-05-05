@@ -68,28 +68,3 @@ resource "aws_security_group" "backend" {
   }
 }
 
-resource "aws_security_group" "database" {
-  name        = "${var.project_name}-sg-database"
-  description = "Permite MySQL das instancias de aplicacao"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description     = "MySQL vindo da camada de aplicacao"
-    from_port       = 3306
-    to_port         = 3306
-    protocol        = "tcp"
-    security_groups = [aws_security_group.backend.id]
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = var.ips_qualquer_lugar_v4
-    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
-  }
-
-  tags = {
-    Name = "${var.project_name}-sg-database"
-  }
-}

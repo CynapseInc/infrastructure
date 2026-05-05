@@ -28,11 +28,6 @@ output "backend_private_ip" {
   value       = aws_instance.backend_private.private_ip
 }
 
-output "rds_endpoint" {
-  description = "Endpoint do banco RDS MySQL"
-  value       = aws_db_instance.mysql.endpoint
-}
-
 output "s3_raw_bucket_name" {
   description = "Nome do bucket S3 raw"
   value       = aws_s3_bucket.raw.bucket

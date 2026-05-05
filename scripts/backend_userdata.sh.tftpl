@@ -1,85 +1,88 @@
 #!/bin/bash
-set -euo pipefail
-
-# Redireciona a saída para log para facilitar o debug via SSH
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
-echo "=== Iniciando Setup do Backend ==="
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
-# 1. Instalação de dependências
-dnf update -y
-dnf install -y docker awscli python3 python3-pip
+# 2. Instalação robusta via script oficial da Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+apt-get update -y
+apt-get install -y awscli unzip
+
 systemctl enable --now docker
 
-python3 -m pip install --no-cache-dir Faker
-
-# 2. Instalação do Docker Compose
-DOCKER_CONFIG=$${DOCKER_CONFIG:-/usr/local/lib/docker/cli-plugins}
-mkdir -p "$DOCKER_CONFIG"
-curl -SL https://github.com/docker/compose/releases/download/v2.26.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
-
-# 3. Preparação do diretório de trabalho
 mkdir -p /opt/encanto
 cd /opt/encanto
 
-echo "Baixando gerador de inserts..."
-aws s3 cp "s3://${deploy_bucket}/backend/gerarInserts2.py" /opt/encanto/gerarInserts2.py
+aws s3 cp s3://${bucket_deploy}/backend/imagens-iniciais.zip /opt/encanto/imagens-iniciais.zip
 
-echo "Gerando arquivo SQL de inserts..."
-python3 /opt/encanto/gerarInserts2.py
+unzip -o /opt/encanto/imagens-iniciais.zip -d /opt/encanto/
 
-echo "Criando estrutura para API WhatsApp..."
-mkdir -p "/opt/encanto/API WHATSAPP"
+chmod -R 777 /opt/encanto/uploads/
 
-# Baixa o .env real do seu bucket privado
-aws s3 cp "s3://${deploy_bucket}/backend/whatsapp.env" "/opt/encanto/API WHATSAPP/.env"
+# ... (MANTENHA O SEU CAT DO DOCKER-COMPOSE E O RESTANTE AQUI PARA BAIXO) ...
+cat <<'EOF' > docker-compose.yml
+version: '3.8'
+services:
+  mysql:
+    image: 'mysql:latest'
+    restart: unless-stopped
+    environment:
+      - MYSQL_DATABASE=encanto_personalizados
+      - MYSQL_PASSWORD=encanto
+      - MYSQL_ROOT_PASSWORD=encanto
+      - MYSQL_USER=cynapse
+    ports:
+      - '3307:3306'
 
-# 4. Download de artefatos do S3
-echo "Baixando arquivos do S3..."
-aws s3 cp "s3://${deploy_bucket}/${jar_key}" /opt/encanto/app.jar
-aws s3 cp "s3://${deploy_bucket}/backend/docker-compose.yml" /opt/encanto/docker-compose.yml
+  rabbitmq:
+    image: 'rabbitmq:3.13-management'
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_PASS=encanto
+      - RABBITMQ_DEFAULT_USER=cynapse
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit vm_memory_high_watermark 0.4
+    ports:
+      - "5672:5672"
+      - "15672:15672"
 
-# 5. Criação do serviço Systemd
-cat <<'EOF' > /etc/systemd/system/encanto-docker.service
-[Unit]
-Description=Encanto Backend Containers
-Requires=docker.service
-After=docker.service
+  whatsapp_api:
+    image: aldinokemal2104/go-whatsapp-web-multidevice:latest
+    command: ["rest"]
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    environment:
+      # PREENCHA AQUI AS VARIÁVEIS QUE ESTAVAM NO SEU WHATSAPP.ENV
+      - CHAVE=VALOR 
+    depends_on:
+      - mysql
+      - rabbitmq
 
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-WorkingDirectory=/opt/encanto
-Environment="BACKEND_PORT=${backend_port}"
-ExecStart=/usr/local/bin/docker-compose up -d
-ExecStop=/usr/local/bin/docker-compose down
-
-[Install]
-WantedBy=multi-user.target
+  backend_api:
+    image: israelcoaquira/encanto-backend:latest
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    environment:
+      - DB_URL=jdbc:mysql://mysql:3306/encanto_personalizados?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectionCollation=utf8mb4_unicode_ci
+      - DB_USERNAME=cynapse
+      - DB_PASSWORD=encanto
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=cynapse
+      - RABBITMQ_PASSWORD=encanto
+      - WHATSAPP_API_BASE_URL=http://whatsapp_api:3000
+    depends_on:
+      - mysql
+      - rabbitmq
+    volumes:
+      - /opt/encanto/uploads:/uploads
+      - /opt/encanto/uploads:/app/uploads
 EOF
 
-# 6. Ativação e inicialização do serviço
-systemctl daemon-reload
-systemctl enable encanto-docker
-systemctl start encanto-docker
-
-echo "Aguardando o MySQL do compose ficar pronto..."
-MYSQL_CONTAINER=""
-for attempt in $(seq 1 30); do
-	MYSQL_CONTAINER=$(docker ps --format '{{.Names}}' | grep -m1 -E '(^|[-_])mysql([_-]|$)' || true)
-	if [ -n "$MYSQL_CONTAINER" ] && docker exec "$MYSQL_CONTAINER" mysqladmin ping -uroot -pencanto --silent; then
-		break
-	fi
-	sleep 5
-done
-
-if [ -z "$MYSQL_CONTAINER" ]; then
-	echo "Container MySQL não foi encontrado."
-	exit 1
-fi
-
-echo "Importando inserts gerados pelo Python..."
-docker exec -i "$MYSQL_CONTAINER" mysql -uroot -pencanto encanto_personalizados < /opt/encanto/popular_banco.sql
-
-echo "=== Backend Docker service configurado com sucesso ==="
+docker compose up -d
