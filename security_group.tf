@@ -54,6 +54,14 @@ resource "aws_security_group" "backend" {
     protocol        = "tcp"
     security_groups = [aws_security_group.frontend.id]
   }
+  
+  ingress {
+    description     = "WhatsApp API vindo da camada frontend"
+    from_port       = 3001
+    to_port         = 3001
+    protocol        = "tcp"
+    security_groups = [aws_security_group.frontend.id]
+  }
 
   egress {
     from_port        = 0

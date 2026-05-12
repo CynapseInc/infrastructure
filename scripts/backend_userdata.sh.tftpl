@@ -1,13 +1,14 @@
 #!/bin/bash
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
+# 1. Preparando memória swap
 fallocate -l 2G /swapfile
 chmod 600 /swapfile
 mkswap /swapfile
 swapon /swapfile
 echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
-# 2. Instalação robusta via script oficial da Docker
+# 2. Instalando Docker e dependências
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 apt-get update -y
@@ -15,16 +16,16 @@ apt-get install -y awscli unzip
 
 systemctl enable --now docker
 
+# 3. Criando pasta do projeto
 mkdir -p /opt/encanto
 cd /opt/encanto
 
 aws s3 cp s3://${bucket_deploy}/backend/imagens-iniciais.zip /opt/encanto/imagens-iniciais.zip
-
 unzip -o /opt/encanto/imagens-iniciais.zip -d /opt/encanto/
-
 chmod -R 777 /opt/encanto/uploads/
+rm /opt/encanto/imagens-iniciais.zip
 
-# ... (MANTENHA O SEU CAT DO DOCKER-COMPOSE E O RESTANTE AQUI PARA BAIXO) ...
+# 4. Criando o arquivo docker-compose.yml
 cat <<'EOF' > docker-compose.yml
 version: '3.8'
 services:
@@ -49,19 +50,26 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
-  whatsapp_api:
+  # Renomeado de whatsapp_api para whatsapp (evita erro de URI no Java)
+  whatsapp:
     image: aldinokemal2104/go-whatsapp-web-multidevice:latest
     command: ["rest"]
     restart: unless-stopped
     ports:
       - '3001:3000'
     environment:
-      # PREENCHA AQUI AS VARIÁVEIS QUE ESTAVAM NO SEU WHATSAPP.ENV
-      - CHAVE=VALOR 
+      - APP_BASE_PATH=/whatsapp
     depends_on:
       - mysql
       - rabbitmq
+    volumes:
+      - /opt/encanto/whatsapp_data:/app/storages
 
   backend_api:
     image: israelcoaquira/encanto-backend:latest
@@ -76,13 +84,19 @@ services:
       - RABBITMQ_PORT=5672
       - RABBITMQ_USERNAME=cynapse
       - RABBITMQ_PASSWORD=encanto
-      - WHATSAPP_API_BASE_URL=http://whatsapp_api:3000
+      # URL atualizada para o novo nome do host sem underline
+      - WHATSAPP_API_BASE_URL=http://whatsapp:3000/whatsapp
     depends_on:
-      - mysql
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+      whatsapp:
+        condition: service_started
     volumes:
       - /opt/encanto/uploads:/uploads
       - /opt/encanto/uploads:/app/uploads
 EOF
 
+# 5. Iniciando os serviços
 docker compose up -d
