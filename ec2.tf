@@ -32,10 +32,14 @@ resource "aws_instance" "backend_private" {
     volume_type           = "gp3"
     delete_on_termination = true
   }
-
   user_data = templatefile("${path.module}/scripts/backend_userdata.sh.tftpl", {
-  bucket_deploy = aws_s3_bucket.deploy.bucket
-})
+    bucket_deploy = aws_s3_bucket.deploy.bucket
+    backup_script_content = templatefile("${path.module}/scripts/backup_diario.sh.tftpl", {
+        bucket_deploy = aws_s3_bucket.deploy.bucket
+        sns_topic_arn = aws_sns_topic.backup_notifications.arn
+        aws_region    = var.aws_region
+    })
+  })
 
   depends_on = [
     aws_nat_gateway.nat,
