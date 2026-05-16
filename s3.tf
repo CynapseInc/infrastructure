@@ -1,5 +1,3 @@
-data "aws_caller_identity" "current" {}
-
 resource "aws_s3_bucket" "raw" {
   bucket = "${var.project_name}-s3-raw-${data.aws_caller_identity.current.account_id}"
 

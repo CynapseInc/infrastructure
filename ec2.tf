@@ -54,11 +54,22 @@ resource "aws_instance" "backend_private" {
     Name = "${var.project_name}-backend-private"
     Role = "backend-private"
   }
+}
 
-  depends_on = [
-    aws_s3_object.backend_jar,
-    aws_s3_object.docker_compose,
-    aws_s3_object.whatsapp_env,
-    aws_s3_object.gerar_inserts_py
-  ]
+# EC2 Dedicada para Grafana
+
+resource "aws_instance" "grafana" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.micro"
+  key_name               = var.key_name
+  subnet_id              = aws_subnet.public[0].id
+  vpc_security_group_ids = [aws_security_group.grafana.id]
+  iam_instance_profile   = "LabInstanceProfile"
+
+  user_data = templatefile("${path.module}/scripts/grafana_userdata.sh.tftpl", {})
+
+  tags = {
+    Name = "${var.project_name}-grafana"
+    Role = "monitoring"
+  }
 }
