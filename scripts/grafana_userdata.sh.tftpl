@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Log com timestamp
+exec > >(tee -a /tmp/grafana-install.log)
+exec 2>&1
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando instalação do Grafana..."
+
+set -e
+set -x
+
+# Atualizar sistema
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Atualizando sistema..."
+apt-get update
+apt-get install -y apt-transport-https software-properties-common wget curl gnupg2
+
+# Método 1: Adicionar repositório do Grafana (modo moderno para Ubuntu 22.04+)
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Configurando repositório do Grafana..."
+mkdir -p /etc/apt/keyrings
+
+# Download GPG key
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Baixando chave GPG..."
+wget -O /tmp/grafana-key.asc https://packages.grafana.com/gpg.key
+gpg --dearmor < /tmp/grafana-key.asc > /etc/apt/keyrings/grafana.gpg
+
+# Add repo with signed key
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Adicionando fontes apt..."
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main" > /etc/apt/sources.list.d/grafana.list
+chmod 644 /etc/apt/sources.list.d/grafana.list
+
+# Update and install
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Atualizando índice de pacotes..."
+apt-get update
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Instalando Grafana..."
+apt-get install -y grafana || { echo "[ERROR] Falha ao instalar grafana-server"; exit 1; }
+
+# Habilitar e iniciar o serviço
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Habilitando Grafana no systemd..."
+systemctl daemon-reload
+systemctl enable grafana-server
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Iniciando Grafana..."
+systemctl start grafana-server
+
+# Aguardar Grafana ficar pronto
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Aguardando 15s para Grafana inicializar..."
+sleep 15
+
+# Verificar status
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Status do serviço:"
+systemctl status grafana-server || true
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Processos Grafana:"
+ps aux | grep -i grafana | grep -v grep || echo "Nenhum processo grafana encontrado"
+
+# Testar conectividade
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Testando porta 3000..."
+for i in {1..5}; do
+  if curl -I http://localhost:3000/ 2>/dev/null | grep -q "HTTP"; then
+    echo "✓ Grafana respondendo na porta 3000"
+    break
+  else
+    echo "Tentativa $i falhou, aguardando..."
+    sleep 2
+  fi
+done
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Instalação concluída!"
