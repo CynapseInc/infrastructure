@@ -100,12 +100,3 @@ EOF
 
 # 5. Iniciando os serviços
 docker compose up -d
-
-# 6. INSTALAÇÃO DO SCRIPT DE BACKUP
-cat <<'EOF_BACKUP' > /opt/encanto/backup_diario.sh
-${backup_script_content}
-EOF_BACKUP
-
-chmod +x /opt/encanto/backup_diario.sh
-
-(crontab -l 2>/dev/null; echo "00 03 * * * /bin/bash /opt/encanto/backup_diario.sh >> /var/log/backup_diario.log 2>&1") | crontab -

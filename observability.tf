@@ -22,17 +22,6 @@ resource "aws_sns_topic_subscription" "security_alerts_email" {
   endpoint  = var.alert_email
 }
 
-# --- CONFIGURAÇÃO DE NOTIFICAÇÃO (SNS) ---
-resource "aws_sns_topic" "backup_notifications" {
-  name = "${var.project_name}-backup-notifications"
-}
-
-resource "aws_sns_topic_subscription" "backup_email" {
-  topic_arn = aws_sns_topic.backup_notifications.arn
-  protocol  = "email"
-  endpoint  = "israel.jumpiri@sptech.school" # <--- Insira seu email de administrador aqui
-}
-
 resource "aws_cloudwatch_log_metric_filter" "security_events" {
   name           = "${var.project_name}-security-events-filter"
   log_group_name = aws_cloudwatch_log_group.application.name

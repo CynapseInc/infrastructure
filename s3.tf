@@ -35,5 +35,4 @@ resource "aws_s3_object" "imagens_iniciais" {
   key    = "backend/imagens-iniciais.zip"
   source = "${path.module}/assets/imagens-iniciais.zip" 
   etag   = filemd5("${path.module}/assets/imagens-iniciais.zip")
-  force_destroy = true
 }
