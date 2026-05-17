@@ -1,40 +1,3 @@
-# Security Group para o ALB
-resource "aws_security_group" "alb" {
-  name        = "${var.project_name}-sg-alb"
-  description = "Security Group para Application Load Balancer"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description      = "HTTP"
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
-    cidr_blocks      = var.ips_qualquer_lugar_v4
-    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
-  }
-
-  ingress {
-    description      = "Grafana"
-    from_port        = 3000
-    to_port          = 3000
-    protocol         = "tcp"
-    cidr_blocks      = var.ips_qualquer_lugar_v4
-    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = var.ips_qualquer_lugar_v4
-    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
-  }
-
-  tags = {
-    Name = "${var.project_name}-sg-alb"
-  }
-}
-
 resource "aws_security_group" "frontend" {
   name        = "${var.project_name}-sg-frontend"
   description = "Permite trafego HTTP do ALB e SSH"
@@ -105,49 +68,13 @@ resource "aws_security_group" "backend" {
   }
 }
 
-resource "aws_security_group" "grafana" {
-  name        = "${var.project_name}-sg-grafana"
-  description = "Security Group para Grafana - porta 3000"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description      = "HTTP para Grafana"
-    from_port        = 3000
-    to_port          = 3000
-    protocol         = "tcp"
-    cidr_blocks      = var.ips_qualquer_lugar_v4
-    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
-  }
-
-  ingress {
-    description      = "SSH"
-    from_port        = var.porta_ssh
-    to_port          = var.porta_ssh
-    protocol         = "tcp"
-    cidr_blocks      = var.ips_qualquer_lugar_v4
-    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
-  }
-
-  egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = var.ips_qualquer_lugar_v4
-    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
-  }
-
-  tags = {
-    Name = "${var.project_name}-sg-grafana"
-  }
-}
-
 resource "aws_security_group" "database" {
   name        = "${var.project_name}-sg-database"
-  description = "Security Group para RDS MySQL"
+  description = "Permite MySQL das instancias de aplicacao"
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description     = "MySQL vindo da camada backend"
+    description     = "MySQL vindo da camada de aplicacao"
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
@@ -166,4 +93,3 @@ resource "aws_security_group" "database" {
     Name = "${var.project_name}-sg-database"
   }
 }
-

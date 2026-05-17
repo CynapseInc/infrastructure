@@ -58,15 +58,57 @@ resource "aws_instance" "backend_private" {
 
 # EC2 Dedicada para Grafana
 
+resource "aws_security_group" "grafana" {
+  name        = "${var.project_name}-sg-grafana"
+  description = "Permite acesso ao Grafana e SSH"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description      = "Grafana de qualquer lugar"
+    from_port        = 3000
+    to_port          = 3000
+    protocol         = "tcp"
+    cidr_blocks      = var.ips_qualquer_lugar_v4
+    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
+  }
+
+  ingress {
+    description      = "SSH de qualquer lugar"
+    from_port        = var.porta_ssh
+    to_port          = var.porta_ssh
+    protocol         = "tcp"
+    cidr_blocks      = var.ips_qualquer_lugar_v4
+    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = var.ips_qualquer_lugar_v4
+    ipv6_cidr_blocks = var.ips_qualquer_lugar_v6
+  }
+
+  tags = {
+    Name = "${var.project_name}-sg-grafana"
+  }
+}
+
 resource "aws_instance" "grafana" {
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t3.micro"
   key_name               = var.key_name
   subnet_id              = aws_subnet.public[0].id
   vpc_security_group_ids = [aws_security_group.grafana.id]
   iam_instance_profile   = "LabInstanceProfile"
 
-  user_data = templatefile("${path.module}/scripts/grafana_userdata.sh.tftpl", {})
+  user_data = <<-EOF
+              #!/bin/bash
+              dnf install -y https://dl.grafana.com/oss/release/grafana-10.4.2-1.x86_64.rpm
+              systemctl daemon-reload
+              systemctl enable grafana-server
+              systemctl restart grafana-server
+              EOF
 
   tags = {
     Name = "${var.project_name}-grafana"

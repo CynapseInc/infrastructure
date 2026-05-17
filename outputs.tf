@@ -52,28 +52,3 @@ output "s3_deploy_bucket_name" {
   description = "Nome do bucket S3 de artefatos FE/BE"
   value       = aws_s3_bucket.deploy.bucket
 }
-
-output "alb_dns_name" {
-  description = "DNS do Application Load Balancer"
-  value       = aws_lb.frontend.dns_name
-}
-
-output "grafana_access_url" {
-  description = "URL para acessar o Grafana (aguarde ~2 min para inicializar)"
-  value       = "http://${aws_lb.frontend.dns_name}:3000"
-}
-
-output "grafana_direct_url" {
-  description = "URL direta para o Grafana (sem ALB)"
-  value       = "http://${aws_instance.grafana.public_ip}:3000"
-}
-
-output "grafana_instance_id" {
-  description = "ID da instância Grafana"
-  value       = aws_instance.grafana.id
-}
-
-output "grafana_instance_ip" {
-  description = "IP público da instância Grafana"
-  value       = aws_instance.grafana.public_ip
-}
